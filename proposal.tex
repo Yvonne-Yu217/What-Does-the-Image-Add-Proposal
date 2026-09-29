@@ -1,9 +1,9 @@
-\documentclass[10pt,twocolumn]{article}
-\usepackage[letterpaper,margin=0.7in,columnsep=0.24in]{geometry}
+\documentclass[11pt,twocolumn]{article}
+\usepackage[letterpaper,margin=0.7in,columnsep=0.25in]{geometry}
 \usepackage[T1]{fontenc}
-\usepackage{times,microtype,amsmath,booktabs,enumitem,xcolor,graphicx,hyperref}
+\usepackage{times,microtype,enumitem,xcolor,hyperref}
 \hypersetup{colorlinks=true,urlcolor=blue!55!black,citecolor=blue!55!black,linkcolor=black,
-pdftitle={What Does the Image Add? Text-Conditioned Visual Detail Completion}}
+pdftitle={What Does the Image Add? Learning to Supplement Existing Descriptions},pdfauthor={}}
 \setlength{\parindent}{0.8em}
 \setlength{\parskip}{0pt}
 \clubpenalty=10000
@@ -12,213 +12,165 @@ pdftitle={What Does the Image Add? Text-Conditioned Visual Detail Completion}}
 \makeatletter
 \renewcommand\section{\@startsection{section}{1}{0pt}{8pt plus 2pt minus 1pt}{4pt}{\large\bfseries}}
 \makeatother
-\newcommand{\ourdate}{September 29, 2026}
 \begin{document}
 \twocolumn[
 \begin{center}
 {\Large\bfseries What Does the Image Add?\\[2pt]
-Text-Conditioned Visual Detail Completion\par}
+Learning to Supplement Existing Descriptions\par}
 \vspace{5pt}
-{\small CSCI-GA 2271 Computer Vision \quad Fall 2026 \quad Revised Proposal}\par
+{\small CSCI-GA 2271 Computer Vision \quad Fall 2026 \quad Project Proposal}\par
 \vspace{3pt}
 {\small\bfseries Track: Agent Track \qquad Format: Research Project}\par
 \vspace{3pt}
-{\small \ourdate}\par
+{\small September 29, 2026}\par
 \end{center}
 \vspace{3pt}
 ]
 
-\section{Research Question and Significance}
-A short caption often identifies an object without describing details a reader
-may need. Given an image, existing text, and a specified instance, can a model
-add a concise, correct detail that the text does not already convey? For example,
-after ``a person is cycling,'' a useful supplement might be ``wearing a red
-helmet.'' If the helmet is already mentioned, repeating it adds little; assigning
-another person's helmet to the cyclist is an error.
+\section{Project Idea and Motivation}
+A short image description often leaves out details that a reader might find
+useful. We want to study whether a vision-language model can look at an image
+and an existing description, then add a small amount of \textbf{correct, useful
+information that the text does not already contain}.
 
-We study \textbf{instance-grounded visual detail completion}. The immediate use
-case is enriching an existing description for a reader interested in a particular
-object. We will measure whether the supplement helps answer independently written
-image questions. This is a testable usefulness hypothesis, not evidence of an
-already validated application.
+For example, suppose a photograph shows a red, long-sleeved shirt. If the text
+says ``a shirt,'' a useful addition could mention its color and sleeves. If the
+text already says ``a red shirt,'' the model should focus on the sleeves.
+The image is unchanged, but what is worth saying depends on what the reader
+already knows.
 
-Our questions are: \textbf{RQ1}, can grounded supervision improve descriptions of
-the correct instance? \textbf{RQ2}, does conditioning generation on existing text
-improve genuinely missing detail recovery over ordinary region and full-image
-captioning? \textbf{RQ3}, do any gains survive factual auditing, automatic
-localization, and evaluation on a different dataset?
+This could support interactive image exploration or help enrich short image
+descriptions. We will investigate whether the added details actually help
+readers answer questions about an image. Our main research question is:
+\textbf{can a model learn to supplement existing text with visually supported
+facts, while avoiding repetition and unsupported claims?}
 
-\section{Completed Evidence}
-Earlier experiments generated full-image and regional descriptions and then
-selected a supplement. Positive source-domain proxy results did not transfer
-reliably, and learning to choose among candidate sentences often failed. We
-therefore moved supervision into \emph{grounded generation}, using human
-phrase-to-box links rather than asking a model to certify its own output.
+\section{Background and Research Focus}
+Related work provides several starting points. FINECAPTION studies descriptions
+of selected image regions \cite{finecaption}. CapWAP trains captions to serve
+information needs \cite{capwap}, and PromptCap uses a question to guide what a
+caption describes \cite{promptcap}.
 
-The completed E100 experiment fine-tuned Qwen2.5-VL-3B for one epoch with LoRA
-on 85,609 Flickr30k Entities phrases. It receives a marked image, but \emph{no
-existing text}. On 20,544 held phrases from 5,300 image-disjoint images, it
-improved reference-phrase recovery under two primary automated evaluators and
-a prespecified third-reader sensitivity analysis:
-
-\begin{center}
-\small
-\begin{tabular}{lrrr}
-\toprule
-Evaluator & Frozen & Trained & Gain (pp)\\
-\midrule
-DeBERTa NLI & 22.10 & 38.41 & +16.32\\
-Smol text reader & 45.43 & 64.67 & +19.24\\
-Qwen7 sensitivity & 30.53 & 42.64 & +12.12\\
-\bottomrule
-\end{tabular}
-\end{center}
-All gains have positive image-cluster bootstrap intervals. Masking the marked
-region with gray substantially reduced performance. These are
-\textbf{automated phrase-recovery scores, not open-caption factual accuracy}.
-
-The fixed adapter's Visual Genome transfer test failed its preregistered
-two-evaluator gate: Smol's gain was only +2.00 points, with a 95\% interval of
-[$-2.50$, $+6.25$], despite a positive DeBERTa result. An initial existing-text
-evaluation is positive under DeBERTa but awaits its second reader. Thus we have
-evidence for a grounded-description component, not yet for text-conditioned completion,
-reliable transfer, or end-to-end utility. Results are frozen to the
-\href{https://github.com/Yvonne-Yu217/CSGA2271_Project_Yvonne_Yu/tree/cf871d6ae94c170a896a7bf1e708beeb0027a31a}{September 29 repository snapshot}.
-
-\section{Related Work and Contribution}
-Flickr30k Entities provides cross-caption entity links and phrase grounding
-\cite{plummer}; Visual Genome provides regional descriptions and QA annotations
-\cite{krishna}. FineCaption already studies controlled regional descriptions
-\cite{finecaption}. CapWAP learns captions for information needs using QA rewards
-\cite{capwap}, while PromptCap conditions captioning on a question \cite{promptcap}.
-Consequently, region captioning, LoRA, or a caption-to-QA improvement alone is not
-a new contribution.
-
-Our course contribution will be a reproducible study of \textbf{what grounded
-supervision fixes and what remains unsolved when completing existing text}.
-The publication hypothesis is narrower: learning a supplement that changes with
-the reader's existing knowledge while preserving instance correctness, without
-seeing the downstream question. It requires mechanism ablations and useful
-gains over strong alternatives; novelty is not assumed.
+We will focus on the information already present in a description. Our
+hypothesis is that training with different descriptions of the same image can
+help a model learn \emph{what remains to be said}. At generation time, the model
+will not see the downstream evaluation question. We will also ask whether
+pointing the model toward an object helps, or whether looking directly at the
+whole image is sufficient. The intended contribution is a method and empirical
+study of this text-dependent information gap; its novelty and usefulness will
+need to be established through comparison with existing approaches.
 
 \section{Proposed Method}
-Let $I$ be the image, $T$ its existing description, $e$ the entity mention in
-$T$, and $b$ the target box. A vision-language generator predicts a short
-supplement $s=g_\theta(I,b,T,e)$. Initially $b$ is supplied by an annotation or
-a user's selection. Automatic localization is a separate extension, so failures
-in finding the object can be distinguished from failures in describing it.
+\textbf{Starting system.} We will use an open pretrained vision-language model,
+such as Qwen2.5-VL-3B, to take an image and an existing description and generate
+a concise supplement. We will begin with objects mentioned in the description
+to keep the initial task well defined. LoRA fine-tuning will allow us to adapt
+the model without training it from scratch.
 
-\textbf{Annotation-based training.} Across captions of the same Flickr30k image,
-we identify a phrase describing the same entity as $e$ but containing a content
-token absent from $T$. This deterministic rule provides candidate residual
-targets, not guaranteed semantic novelty. The prepared E107 set contains
-63,786 train targets over 19,626 images and 15,300 held targets over 4,720
-different images. We will train one fixed LoRA configuration with target-token
-cross-entropy, then score the frozen held set without a checkpoint sweep.
+\textbf{Learning what is missing.} We plan to construct training examples in
+which the same object appears with different amounts of information in the
+text. An object with several annotated attributes can provide multiple
+examples: when the text mentions one attribute, the target supplement can
+contain another. Natural captions describing the same object will provide a
+second source of examples. We will check that a target adds meaning, since
+different wording can express the same fact.
 
-\textbf{Mechanism checks.} E100 and E107 use different training sets, so a
-subsequent matched-data, matched-budget ablation will remove $T$ while keeping
-targets fixed. Adding a verified fact to $T$ should reduce repetition of that
-fact; paraphrasing $T$ should preserve useful content. Same-image wrong-instance
-and gray-region controls test whether the correct visual evidence matters.
+The initial training objective will teach the model to generate these missing
+details. We will investigate paired examples where a fact changes from absent
+to already mentioned, encouraging the model to adjust its output accordingly.
+We will compare this with ordinary description fine-tuning to find out whether
+explicitly modeling the existing text provides a benefit.
 
-\textbf{Automatic localization.} A frozen binding model will score a finite
-hierarchy of windows using $T$ and $e$, without the target phrase or annotated
-box. Report localization quality and retention of human-box description gains.
-This is a component evaluation, not a proposed new detector.
+\textbf{Whole image or region guidance?} Our main comparison will give one
+version the full image and text, and another the same inputs with a box marking
+the object of interest. Both will receive the same textual object reference and
+comparable training data, initialization and compute. This will let us test
+whether boxes help rather than assume they are necessary. If they help, we will
+explore automatic localization; if they do not, we will favor the simpler
+full-image approach. Letting the model choose which object to discuss will be
+an optional extension after the initial task is understood.
 
-\section{Evaluation}
-\textbf{Data and splits.} Flickr30k Entities is the main development setting;
-Visual Genome tests transfer. Split by image, keep all phrases and text states
-of an image together, and check exact and perceptual duplicates. Previously
-inspected examples remain development data. Official test and reserved
-confirmation identities stay sealed until the method, metrics, sample size,
-and comparison plan are frozen.
+\section{Data and Evaluation}
+\textbf{Datasets.} We plan to use Visual Genome's object and attribute
+annotations \cite{krishna}, GQA's associated questions \cite{hudson}, and
+Flickr30k Entities' captions and object correspondences \cite{plummer}.
+Controlled attribute examples will help us examine model behavior, while
+natural captions will test whether it works with ordinary descriptions.
+Visual Genome and GQA share imagery, so we will keep their splits aligned.
+Training and evaluation will be separated by image, with duplicate checks and
+a reserved set for final evaluation.
 
-\textbf{Baselines.} Compare text alone; frozen and trained marked-region
-descriptions; full-image generic and entity-directed descriptions; and the
-frozen prompt-only version of our text-conditioned model. To distinguish a
-method gain from fine-tuning alone, add a full-image control trained on the same
-examples and budget. Fix supplement length for the main comparison, and also
-report stronger full-image outputs allowed a larger budget. Purposeful-caption
-and question-conditioned PromptCap-style controls will contextualize utility;
-the latter have an explicitly disclosed question-access advantage. Adaptations
-will be identified as such rather than called official reproductions.
+\textbf{Comparisons.} Baselines will include the existing text alone, a generic
+image caption, a model prompted to add details from the full image, and ordinary
+fine-tuning. We will compare versions with and without region guidance under
+matched training conditions and output lengths. A more detailed full-image
+caption will also test whether simply saying more is enough.
 
-\textbf{Metrics.} Report (i) reference-phrase recovery and missing-detail recall;
-(ii) visual factual precision, wrong-instance and contradiction rates;
-(iii) repetition of $T$, abstention, and text-state sensitivity;
-(iv) text-only QA accuracy from $T+s$, including answers harmed by the supplement;
-and (v) total generation/evaluation time, tokens, memory and allocated GPU-hours.
-Selected region area is not compute cost. Cluster uncertainty estimates by image
-and report every prespecified reader and seed.
-
-\textbf{Verification.} Two blinded model families review facts and QA quality,
-with positive, wrong-box and answer-leak controls. Failed reviewers cannot
-establish a pass. Preserve uncertainty and label these results automated proxies.
-Use multiple valid references where available; a different correct description
-need not match one reference. Plan an image-visible human audit before claiming
-human-valid quality.
-
-\textbf{Practical-value gate.} Independently written Visual Genome questions
-must be connected to objects through official QA-to-region mappings, not shared
-answer words. The current 512-image development packet is awaiting a blinded
-quality audit; it is not a completed utility experiment. Only eligible data and
-a successful residual generator proceed to a frozen text-only answerer. We
-measure information conveyed by the supplement while hiding questions from
-generation. Answer gain must exceed introduced errors at an acceptable cost.
-
-\textbf{Decision rule.} The registered E107 development gate requires at least
-3 percentage points in reference recovery from $T$ plus the output over each
-of its three fixed baselines,
-with positive paired intervals under both primary readers. It licenses further
-evaluation, not a publication claim. Broader utility and confirmation endpoints
-will be fixed prospectively. A failure triggers error analysis and a materially
-new hypothesis; we will not retune against the same holdout until it passes.
-
-\section{Deliverables, Risks, and Timeline}
-\textbf{Deliverables.} Reproducible data, training and evaluation pipelines;
-grounded/text-conditioned comparisons and failure analyses; a 4--9-page LaTeX
-research report excluding references, plus an Agent Log appendix; and a code
-repository with incremental history. This proposal copy does not replace that
-history. An image/text/box viewer is a stretch goal; finance is outside scope.
-
-\textbf{Risks and responses.} Audit semantic novelty rather than word absence.
-Check reviewers for bias and label collapse with independent controls. Report
-human and automatic boxes separately and retain negative transfer results.
-If strong full-image baselines match our method at lower cost, the course outcome
-will be a rigorous comparative study, not an unsupported superiority claim.
-
-\textbf{Preliminary schedule} (relative to approval of this revision; align
-calendar dates with the course deadlines):
+\textbf{What counts as success?} We will evaluate:
 \begin{itemize}
-\item \textbf{Weeks 1--2:} Complete the fixed seed replication, existing-text evaluation,
-strong full-image controls, and blind factual audit; freeze the error taxonomy.
-\item \textbf{Weeks 3--4:} Run the prepared text-conditioned generator and matched
-ablations; evaluate automatic localization only under its registered protocol.
-\item \textbf{Weeks 5--6:} Audit independent QA data; if gates pass, evaluate utility
-and transfer. Otherwise diagnose and register one material redesign.
-\item \textbf{Final two weeks:} Freeze claims and figures, finalize the report and
-Agent Log, and rehearse team code walkthroughs. Publication expansion is optional.
+\item \textbf{New information:} how many reference facts missing from the
+original text are recovered, and how much existing information is repeated.
+\item \textbf{Correctness:} whether additions are supported by the image and
+refer to the right object, including contradictions and other factual errors.
+\item \textbf{Usefulness:} whether a text-only question-answering model answers
+independent image questions more accurately after receiving the supplement.
+\item \textbf{Cost:} generation time, model calls, output length, memory use
+and total GPU-hours, including any localization step.
 \end{itemize}
 
-\textbf{Resources and agent workflow.} Use one available NYU HPC GPU within the
-reconciled budget, with caching, checkpoints, five-second monitoring and a prepared
-task queue. Agents assist with code, literature and analysis. Students verify
-decisions and results and prepare to explain all submitted code. The final report
-will attribute individual contributions; its Agent Log will document tools,
-division of work, agent failures, human diagnosis and verification.
+Questions and answers will be hidden from supplement generation. We will
+report cases where an addition makes an answer worse as well as cases where it
+helps. Reference matching and model-based judgments will support evaluation,
+but neither alone will establish factual correctness. Automated reviewers will
+be checked on clearly correct and incorrect examples, and a visually reviewed
+sample will examine their reliability. We will report uncertainty, repeat key
+training runs, and test transfer across the two image sources.
+
+\section{Expected Deliverables and Risks}
+We expect to produce a reproducible training and evaluation pipeline, a
+comparison of the proposed method and full-image baselines, and an analysis of
+when region guidance helps. The final submission will include a 4--9-page
+LaTeX research report excluding references, a code repository with incremental
+history, presentation materials, and an Agent Log appendix. A small viewer for
+comparing descriptions will be a stretch goal.
+
+The main risks are incomplete annotations, repetitive or invented details,
+and a gap between controlled examples and natural language. We will address
+these through data inspection, factual-error analysis, and evaluation on
+natural descriptions. A simple full-image baseline may already perform well;
+if so, understanding its strengths and the limits of additional training will
+be part of the research outcome. We will use development results to revise
+unsuccessful ideas and keep the final evaluation separate from method selection.
+
+\section{Timeline, Resources, and Team Workflow}
+\textbf{Preliminary timeline} (aligned to course deadlines):
+\begin{itemize}
+\item \textbf{Weeks 1--2:} Review related work, prepare image-level splits,
+inspect training examples, and implement baseline models.
+\item \textbf{Weeks 3--4:} Train the supplement model and compare ordinary
+training, paired examples, and versions with and without boxes.
+\item \textbf{Weeks 5--6:} Evaluate natural descriptions, question-answering
+utility, factual errors and transfer; investigate the main failure cases.
+\item \textbf{Final two weeks:} Complete final evaluation, report and Agent
+Log; prepare the presentation and team code walkthrough.
+\end{itemize}
+
+\textbf{Resources.} We plan to use NYU HPC with one suitable available GPU at a
+time and a small capped pilot before scaling up. We will adapt batching and
+image resolution to available memory, cache reusable work, and monitor runtime
+and utilization to avoid wasting allocated compute.
+
+\textbf{Agent Track workflow.} Agents will assist with literature review,
+implementation and analysis. Team members will review research decisions,
+inspect failures and verify the final system. The Agent Log will document the
+tools used, division of work, agent mistakes, human diagnosis and verification.
+Individual contributions will be listed in the final report, and every member
+will prepare to explain the submitted code.
 
 \begin{thebibliography}{6}
 \small
-\bibitem{plummer} B. A. Plummer et al. Flickr30k Entities: Collecting Region-to-Phrase
-Correspondences for Richer Image-to-Sentence Models. \emph{IJCV}, 2017.
-\href{https://arxiv.org/abs/1505.04870}{arXiv:1505.04870}.
-\bibitem{krishna} R. Krishna et al. Visual Genome: Connecting Language and Vision
-Using Crowdsourced Dense Image Annotations. \emph{IJCV}, 2017.
-\href{https://arxiv.org/abs/1602.07332}{arXiv:1602.07332}.
 \bibitem{finecaption} H. Hua et al. FINECAPTION: Compositional Image Captioning
-Focusing on Wherever You Want at Any Granularity. \emph{CVPR}, 2025.
+Focusing on Wherever You Want at Any Granularity. 2024.
 \href{https://arxiv.org/abs/2411.15411}{arXiv:2411.15411}.
 \bibitem{capwap} A. Fisch et al. CapWAP: Image Captioning with a Purpose.
 \emph{EMNLP}, 2020.
@@ -226,5 +178,14 @@ Focusing on Wherever You Want at Any Granularity. \emph{CVPR}, 2025.
 \bibitem{promptcap} Y. Hu et al. PromptCap: Prompt-Guided Task-Aware Image
 Captioning. \emph{ICCV}, 2023.
 \href{https://arxiv.org/abs/2211.09699}{arXiv:2211.09699}.
+\bibitem{krishna} R. Krishna et al. Visual Genome: Connecting Language and Vision
+Using Crowdsourced Dense Image Annotations. 2016.
+\href{https://arxiv.org/abs/1602.07332}{arXiv:1602.07332}.
+\bibitem{hudson} D. A. Hudson and C. D. Manning. GQA: A New Dataset for Real-World
+Visual Reasoning and Compositional Question Answering. \emph{CVPR}, 2019.
+\href{https://arxiv.org/abs/1902.09506}{arXiv:1902.09506}.
+\bibitem{plummer} B. A. Plummer et al. Flickr30k Entities: Collecting Region-to-Phrase
+Correspondences for Richer Image-to-Sentence Models. 2015.
+\href{https://arxiv.org/abs/1505.04870}{arXiv:1505.04870}.
 \end{thebibliography}
 \end{document}
