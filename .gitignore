@@ -1,9 +1,7 @@
-._*
-.DS_Store
-*.aux
-*.log
-*.out
-*.toc
-*.fls
-*.fdb_latexmk
-*.synctex.gz
+# Keep this repository limited to the proposal and its build instructions.
+# Add explicit exceptions here if the proposal later needs figures or a bibliography.
+/*
+!/.gitignore
+!/README.md
+!/proposal.tex
+!/proposal.pdf
